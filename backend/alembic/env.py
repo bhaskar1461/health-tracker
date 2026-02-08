@@ -1,8 +1,8 @@
 from logging.config import fileConfig
-import os
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from alembic import context
+from app.core.config import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -10,9 +10,7 @@ config = context.config
 
 fileConfig(config.config_file_name)
 
-DATABASE_URL = os.getenv('DATABASE_URL') or 'sqlite:///./dev.db'
-
-config.set_main_option('sqlalchemy.url', DATABASE_URL)
+config.set_main_option('sqlalchemy.url', settings.DATABASE_URL)
 
 # add your model's MetaData object here
 from app.db.base_class import Base

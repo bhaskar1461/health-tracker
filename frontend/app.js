@@ -1,5 +1,17 @@
-const API_BASE = 'http://localhost:8000';
-const USER_ID = 1; // demo user id; replace with real auth
+const storedApiBase = localStorage.getItem('apiBase');
+const defaultApiBase = window.location.origin;
+const config = {
+  apiBase: (storedApiBase || defaultApiBase).replace(/\/$/, ''),
+  token: localStorage.getItem('accessToken') || '',
+};
+
+function buildHeaders(extra = {}){
+  const headers = {...extra};
+  if (config.token){
+    headers.Authorization = `Bearer ${config.token}`;
+  }
+  return headers;
+}
 
 function createRing(container, percent){
   // create simple SVG ring
@@ -111,7 +123,7 @@ function renderHRChart(latest){
 async function fetchSummary(){
   const el = document.getElementById('summary');
   try{
-    const res = await fetch(`${API_BASE}/api/v1/health-data/summary`, {headers: {'X-User-Id': String(USER_ID)}});
+    const res = await fetch(`${config.apiBase}/api/v1/health-data/summary`, {headers: buildHeaders()});
     if(!res.ok){ el.textContent = 'No summary (start backend and create a user)'; return }
     const data = await res.json();
     const latest = data.latest;
@@ -143,7 +155,7 @@ async function submitEntry(){
   }
   try{
     document.getElementById('submitBtn').disabled = true;
-    const res = await fetch(`${API_BASE}/api/v1/health-data/`, {method: 'POST', headers: {'Content-Type':'application/json','X-User-Id':String(USER_ID)}, body: JSON.stringify(body)});
+    const res = await fetch(`${config.apiBase}/api/v1/health-data/`, {method: 'POST', headers: buildHeaders({'Content-Type':'application/json'}), body: JSON.stringify(body)});
     if(!res.ok){ const txt = await res.text(); alert('Failed: '+txt); return }
     alert('Entry created');
     fetchSummary();
@@ -155,7 +167,7 @@ async function syncFromZepp(){
   try{
     document.getElementById('syncBtn').disabled = true;
     document.getElementById('syncBtn').textContent = 'Syncing...';
-    const res = await fetch(`${API_BASE}/api/v1/health-data/sync-zepp`, {method: 'POST', headers: {'Content-Type':'application/json','X-User-Id':String(USER_ID)}});
+    const res = await fetch(`${config.apiBase}/api/v1/health-data/sync-zepp`, {method: 'POST', headers: buildHeaders({'Content-Type':'application/json'})});
     if(!res.ok){
       const error = await res.json();
       alert('Sync failed: ' + (error.detail || 'Unknown error'));
@@ -171,8 +183,36 @@ async function syncFromZepp(){
   }
 }
 
+function loadConfigUI(){
+  const apiBaseInput = document.getElementById('apiBaseInput');
+  const tokenInput = document.getElementById('tokenInput');
+  if (apiBaseInput) apiBaseInput.value = config.apiBase;
+  if (tokenInput) tokenInput.value = config.token;
+}
+
+function saveConfig(){
+  const apiBaseInput = document.getElementById('apiBaseInput');
+  const tokenInput = document.getElementById('tokenInput');
+  if (apiBaseInput && apiBaseInput.value){
+    config.apiBase = apiBaseInput.value.replace(/\/$/, '');
+    localStorage.setItem('apiBase', config.apiBase);
+  }
+  if (tokenInput){
+    config.token = tokenInput.value.trim();
+    if (config.token){
+      localStorage.setItem('accessToken', config.token);
+    } else {
+      localStorage.removeItem('accessToken');
+    }
+  }
+  fetchSummary();
+}
+
 window.addEventListener('load', ()=>{ 
+  loadConfigUI();
   fetchSummary();
   document.getElementById('submitBtn').addEventListener('click', submitEntry);
   document.getElementById('syncBtn').addEventListener('click', syncFromZepp);
+  const saveBtn = document.getElementById('saveConfigBtn');
+  if (saveBtn) saveBtn.addEventListener('click', saveConfig);
 })

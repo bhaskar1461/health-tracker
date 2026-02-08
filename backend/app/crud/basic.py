@@ -9,6 +9,9 @@ pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 def get_user_by_email(db: Session, email: str):
     return db.query(models.User).filter(models.User.email == email).first()
 
+def get_user(db: Session, user_id: int):
+    return db.query(models.User).filter(models.User.id == user_id).first()
+
 def create_user(db: Session, email: str, password: str, full_name: str = None):
     hashed = pwd_context.hash(password)
     user = models.User(email=email, hashed_password=hashed, full_name=full_name)

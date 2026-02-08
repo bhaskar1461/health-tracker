@@ -22,6 +22,13 @@ header h1{font-size:20px;color:#0b1220;font-weight:600}
 .entry-form{background:linear-gradient(180deg,#ffffff,#fbfdff);border-radius:12px;padding:12px;box-shadow:0 8px 24px rgba(16,24,40,0.06);margin-bottom:14px}
 .entry-form label{display:block;font-size:12px;color:#6b7280;margin-bottom:6px}
 .entry-form input{width:100%;padding:8px;border-radius:10px;border:1px solid #e6eef8;margin-bottom:8px;background:#fbfdff}
+.config{background:linear-gradient(180deg,#ffffff,#fbfdff);border-radius:12px;padding:12px;box-shadow:0 8px 24px rgba(16,24,40,0.06);margin-bottom:14px}
+.config h2{font-size:14px;margin-bottom:10px}
+.config-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:10px}
+.config label{display:block;font-size:12px;color:#6b7280;margin-bottom:6px}
+.config input{width:100%;padding:8px;border-radius:10px;border:1px solid #e6eef8;background:#fbfdff}
+.config-actions{display:flex;flex-direction:column;gap:8px;font-size:11px;color:#6b7280}
+.config-actions code{background:#eef4ff;padding:2px 6px;border-radius:6px}
 button{background:linear-gradient(90deg,#0066ff,#007aff);color:white;border:none;padding:10px 14px;border-radius:12px;cursor:pointer;box-shadow:0 8px 18px rgba(3,102,214,0.12)}
 pre{background:transparent;padding:10px;border-radius:8px;overflow:auto}
 footer{margin-top:12px;color:#6b7280;text-align:center;font-size:12px}

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from app.db import session as db_session
@@ -6,42 +6,41 @@ from app.crud import basic
 from app.schemas.health_data import HealthDataCreate, HealthDataOut
 from app.services.zepp_service import zepp_service
 from app.core.config import settings
+from app.core.security import get_current_user
+from app.models.user import User
 
 router = APIRouter()
 
-# NOTE: For simplicity, auth is done via a simple header token that contains user id in `X-User-Id` for demo.
-# In production use OAuth/JWT dependency to get current user.
-
-def get_current_user_id(x_user_id: str | None = None):
-    # This is a tiny placeholder; callers should pass header `X-User-Id` with user id
-    if not x_user_id:
-        raise HTTPException(status_code=401, detail="Missing X-User-Id header for demo auth")
-    try:
-        return int(x_user_id)
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid X-User-Id header")
-
 @router.post("/", response_model=HealthDataOut)
-def create_health(health_in: HealthDataCreate, db: Session = Depends(db_session.get_db), x_user_id: str | None = Header(None)):
-    user_id = get_current_user_id(x_user_id)
-    obj = basic.create_health_data(db, user_id=user_id, obj_in=health_in)
+def create_health(
+    health_in: HealthDataCreate,
+    db: Session = Depends(db_session.get_db),
+    current_user: User = Depends(get_current_user),
+):
+    obj = basic.create_health_data(db, user_id=current_user.id, obj_in=health_in)
     return obj
 
 @router.get("/", response_model=List[HealthDataOut])
-def list_health(db: Session = Depends(db_session.get_db), x_user_id: str | None = Header(None)):
-    user_id = get_current_user_id(x_user_id)
-    return basic.get_health_for_user(db, user_id)
+def list_health(
+    db: Session = Depends(db_session.get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return basic.get_health_for_user(db, current_user.id)
 
 @router.get("/summary")
-def summary(db: Session = Depends(db_session.get_db), x_user_id: str | None = Header(None)):
-    user_id = get_current_user_id(x_user_id)
-    latest = basic.get_latest_health(db, user_id)
+def summary(
+    db: Session = Depends(db_session.get_db),
+    current_user: User = Depends(get_current_user),
+):
+    latest = basic.get_latest_health(db, current_user.id)
     return {"latest": latest}
 
 @router.post("/sync-zepp")
-def sync_zepp(db: Session = Depends(db_session.get_db), x_user_id: str | None = Header(None)):
+def sync_zepp(
+    db: Session = Depends(db_session.get_db),
+    current_user: User = Depends(get_current_user),
+):
     """Sync health data from Zepp app"""
-    user_id = get_current_user_id(x_user_id)
 
     # Check if Zepp credentials are configured
     if not settings.ZEPP_PHONE or not settings.ZEPP_PASSWORD:
@@ -59,7 +58,7 @@ def sync_zepp(db: Session = Depends(db_session.get_db), x_user_id: str | None = 
     # Create health entry from Zepp data
     from app.schemas.health_data import HealthDataCreate
     health_create = HealthDataCreate(**zepp_data)
-    obj = basic.create_health_data(db, user_id=user_id, obj_in=health_create)
+    obj = basic.create_health_data(db, user_id=current_user.id, obj_in=health_create)
 
     return {
         "message": "Successfully synced data from Zepp",

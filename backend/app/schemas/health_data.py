@@ -1,15 +1,15 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, conint, confloat
 from typing import Optional
 from datetime import datetime
 
 class HealthDataBase(BaseModel):
-    calories_burned: Optional[float] = 0.0
-    exercise_minutes: Optional[int] = 0
-    stand_hours: Optional[int] = 0
-    resting_heart_rate: Optional[int] = None
-    respiratory_rate: Optional[float] = None
-    sleep_duration: Optional[float] = None
-    sleep_quality: Optional[int] = None
+    calories_burned: Optional[confloat(ge=0)] = 0.0
+    exercise_minutes: Optional[conint(ge=0)] = 0
+    stand_hours: Optional[conint(ge=0, le=24)] = 0
+    resting_heart_rate: Optional[conint(ge=0, le=300)] = None
+    respiratory_rate: Optional[confloat(ge=0)] = None
+    sleep_duration: Optional[confloat(ge=0)] = None
+    sleep_quality: Optional[conint(ge=1, le=5)] = None
     sleep_stages: Optional[str] = None
 
 class HealthDataCreate(HealthDataBase):
