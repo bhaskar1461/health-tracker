@@ -1,0 +1,36 @@
+*{box-sizing:border-box;font-family:Inter,system-ui,Arial,sans-serif;margin:0}
+body{background:linear-gradient(180deg,#f8fbff 0%, #eef6ff 100%);color:#0b1220}
+.container{max-width:420px;margin:18px auto;padding:18px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+header h1{font-size:20px;color:#0b1220;font-weight:600}
+.favorites{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+.ring-wrap{width:120px;height:120px;display:flex;align-items:center;justify-content:center;position:relative}
+.ring-wrap svg{filter:drop-shadow(0 6px 18px rgba(16,24,40,0.08))}
+.ring-label{position:absolute;font-size:12px;color:#4b5563;text-align:center}
+.activity-cards{flex:1;display:flex;flex-direction:column;gap:10px}
+.small-card{background:linear-gradient(180deg, #ffffff, #fbfdff);border-radius:14px;padding:12px;box-shadow:0 8px 24px rgba(16,24,40,0.06);display:flex;justify-content:space-between;align-items:center;transition:transform .18s ease, box-shadow .18s ease}
+.small-card:hover{transform:translateY(-6px);box-shadow:0 14px 36px rgba(16,24,40,0.12)}
+.small-card .title{color:#6b7280;font-size:12px}
+.small-card .value{font-size:18px;font-weight:700;color:#0b1220}
+.highlights{background:linear-gradient(180deg,#ffffff,#fbfdff);border-radius:14px;padding:14px;box-shadow:0 8px 24px rgba(16,24,40,0.06);margin-bottom:14px}
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.chart-card{background:linear-gradient(180deg,#ffffff,#fbfdff);border-radius:12px;padding:12px;box-shadow:0 8px 24px rgba(16,24,40,0.06)}
+.chart-card h3{font-size:13px;margin-bottom:8px;color:#0b1220}
+.sleep-timeline{display:flex;gap:2px;height:56px;align-items:flex-end;border-radius:8px;overflow:hidden}
+.sleep-seg{height:100%;display:inline-block;opacity:0;transition:width .6s ease, opacity .4s ease}
+.respiratory{font-size:12px;color:#6b7280}
+.entry-form{background:linear-gradient(180deg,#ffffff,#fbfdff);border-radius:12px;padding:12px;box-shadow:0 8px 24px rgba(16,24,40,0.06);margin-bottom:14px}
+.entry-form label{display:block;font-size:12px;color:#6b7280;margin-bottom:6px}
+.entry-form input{width:100%;padding:8px;border-radius:10px;border:1px solid #e6eef8;margin-bottom:8px;background:#fbfdff}
+button{background:linear-gradient(90deg,#0066ff,#007aff);color:white;border:none;padding:10px 14px;border-radius:12px;cursor:pointer;box-shadow:0 8px 18px rgba(3,102,214,0.12)}
+pre{background:transparent;padding:10px;border-radius:8px;overflow:auto}
+footer{margin-top:12px;color:#6b7280;text-align:center;font-size:12px}
+
+/* subtle animations */
+@keyframes floatUp{from{transform:translateY(8px)}to{transform:translateY(0)}}
+.small-card{animation:floatUp .5s ease both}
+
+@media (max-width:420px){
+	.container{padding:12px}
+	.ring-wrap{width:100px;height:100px}
+}

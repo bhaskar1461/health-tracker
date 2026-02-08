@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.sqlite3
+*.db
+.env
+backend/venv/
+frontend/node_modules/
+*.log
+backend/dev.db
+backend/uvicorn.log
+frontend/server.log
