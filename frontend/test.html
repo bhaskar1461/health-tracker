@@ -5,12 +5,18 @@
 </head>
 <body>
     <h1>API Connection Test</h1>
+    <label for="tokenInput">Access Token</label>
+    <input id="tokenInput" type="password" placeholder="Paste JWT access token" />
     <button onclick="testAPI()">Test Backend Connection</button>
     <button onclick="testZepp()">Test Zepp Sync</button>
     <div id="result"></div>
 
     <script>
         const API_BASE = 'http://localhost:8000';
+
+        function getToken() {
+            return document.getElementById('tokenInput').value.trim();
+        }
 
         async function testAPI() {
             try {
@@ -24,11 +30,12 @@
 
         async function testZepp() {
             try {
+                const token = getToken();
                 const response = await fetch(`${API_BASE}/api/v1/health-data/sync-zepp`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-User-Id': '1'
+                        'Authorization': token ? `Bearer ${token}` : ''
                     }
                 });
                 const data = await response.json();

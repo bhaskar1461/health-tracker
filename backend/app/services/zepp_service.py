@@ -1,17 +1,32 @@
-import requests
-import re
 import json
+import logging
+import re
 from typing import Optional, Dict, Any
-from app.core.config import settings
+
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
+logger = logging.getLogger(__name__)
+
 
 class ZeppService:
-    def __init__(self):
+    def __init__(self, timeout: int = 10):
         self.headers = {
             'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 9; MI 6 MIUI/20.6.18)'
         }
         self.login_token = None
         self.app_token = None
         self.user_id = None
+        self.timeout = timeout
+        self.session = requests.Session()
+        retries = Retry(
+            total=3,
+            backoff_factor=0.5,
+            status_forcelist=(429, 500, 502, 503, 504),
+            allowed_methods=("GET", "POST"),
+        )
+        self.session.mount("https://", HTTPAdapter(max_retries=retries))
 
     def login(self, phone: str, password: str) -> bool:
         """Authenticate with Zepp API"""
@@ -29,7 +44,13 @@ class ZeppService:
                 "token": "access"
             }
 
-            r1 = requests.post(url1, data=data1, headers=headers, allow_redirects=False)
+            r1 = self.session.post(
+                url1,
+                data=data1,
+                headers=headers,
+                allow_redirects=False,
+                timeout=self.timeout,
+            )
             if r1.status_code != 302:
                 return False
 
@@ -50,7 +71,9 @@ class ZeppService:
                 "third_name": "huami_phone",
             }
 
-            r2 = requests.post(url2, data=data2, headers=headers).json()
+            r2_response = self.session.post(url2, data=data2, headers=headers, timeout=self.timeout)
+            r2_response.raise_for_status()
+            r2 = r2_response.json()
             if 'token_info' not in r2:
                 return False
 
@@ -61,18 +84,20 @@ class ZeppService:
             self.app_token = self._get_app_token()
             return True
 
-        except Exception as e:
-            print(f"Zepp login error: {e}")
+        except Exception as exc:
+            logger.exception("Zepp login error: %s", exc)
             return False
 
     def _get_app_token(self) -> Optional[str]:
         """Get app token for API access"""
         try:
             url = f"https://account-cn.huami.com/v1/client/app_tokens?app_name=com.xiaomi.hm.health&dn=api-user.huami.com%2Capi-mifit.huami.com%2Capp-analytics.huami.com&login_token={self.login_token}&os_version=4.1.0"
-            response = requests.get(url, headers=self.headers).json()
-            return response['token_info']['app_token']
-        except Exception as e:
-            print(f"Error getting app token: {e}")
+            response = self.session.get(url, headers=self.headers, timeout=self.timeout)
+            response.raise_for_status()
+            payload = response.json()
+            return payload['token_info']['app_token']
+        except Exception as exc:
+            logger.exception("Error getting app token: %s", exc)
             return None
 
     def get_latest_health_data(self) -> Optional[Dict[str, Any]]:
@@ -83,8 +108,10 @@ class ZeppService:
         try:
             # Get current timestamp
             time_url = 'http://api.m.taobao.com/rest/api3.do?api=mtop.common.getTimestamp'
-            time_response = requests.get(time_url, headers=self.headers).json()
-            t = time_response['data']['t']
+            time_response = self.session.get(time_url, headers=self.headers, timeout=self.timeout)
+            time_response.raise_for_status()
+            time_payload = time_response.json()
+            t = time_payload['data']['t']
 
             # Request today's data
             import time as time_module
@@ -99,17 +126,19 @@ class ZeppService:
             # Request data for today
             data = f'userid={self.user_id}&last_sync_data_time=0&device_type=0&last_deviceid=DA932FFFFE8816E7&data_len=1'
 
-            response = requests.post(url, data=data, headers=head).json()
+            response = self.session.post(url, data=data, headers=head, timeout=self.timeout)
+            response.raise_for_status()
+            payload = response.json()
 
-            if 'data' in response and response['data']:
+            if 'data' in payload and payload['data']:
                 # Parse the response to extract health metrics
-                return self._parse_health_data(response['data'][0])
+                return self._parse_health_data(payload['data'][0])
             else:
-                print("No data found in Zepp response")
+                logger.warning("No data found in Zepp response")
                 return None
 
-        except Exception as e:
-            print(f"Error fetching Zepp data: {e}")
+        except Exception as exc:
+            logger.exception("Error fetching Zepp data: %s", exc)
             return None
 
     def _parse_health_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -137,8 +166,8 @@ class ZeppService:
                 'sleep_stages': None,        # Would need sleep stages data
             }
 
-        except Exception as e:
-            print(f"Error parsing health data: {e}")
+        except Exception as exc:
+            logger.exception("Error parsing health data: %s", exc)
             return None
 
 # Global service instance

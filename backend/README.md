@@ -13,7 +13,7 @@ uvicorn app.main:app --reload
 API endpoints:
 - POST /api/v1/auth/signup {email,password}
 - POST /api/v1/auth/login {email,password}
-- GET /api/v1/health-data/ (requires header X-User-Id)
-- POST /api/v1/health-data/ (requires header X-User-Id)
+- GET /api/v1/health-data/ (requires Authorization: Bearer <token>)
+- POST /api/v1/health-data/ (requires Authorization: Bearer <token>)
 
-Note: For demo simplicity health-data endpoints accept header `X-User-Id` to identify user. Replace with proper JWT dependency in production.
+Note: Health-data endpoints require JWT access tokens from /auth/login.
