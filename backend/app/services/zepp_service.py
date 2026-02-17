@@ -12,7 +12,7 @@ class ZeppService:
         self.login_token = None
         self.app_token = None
         self.user_id = None
-https://github.com/bhaskar1461/health-trackerhttps://github.com/bhaskar1461/health-trackerhttps://github.com/bhaskar1461/health-trackerhttps://github.com/bhaskar1461/health-tracker
+
     def login(self, phone: str, password: str) -> bool:
         """Authenticate with Zepp API"""
         try:
